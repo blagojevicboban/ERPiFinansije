@@ -27,16 +27,33 @@ public class NapredniFilterCriteria
         SelectedPartnerId.HasValue || SamoProknjizeni.HasValue;
 }
 
+/// <summary>Ekran koji je otvorio dijalog — određuje koja polja imaju smisla (npr. Konto i Partner ne postoje na kalkulacijama).</summary>
+public enum NaprednoFilterKontekst
+{
+    Nalozi,
+    Trgovina
+}
+
 public partial class NaprednaPretragaWindow : Window
 {
     private readonly AccountingDbContext _db;
+    private readonly NaprednoFilterKontekst _kontekst;
     public NapredniFilterCriteria FilterCriteria { get; private set; }
 
-    public NaprednaPretragaWindow(AccountingDbContext db, NapredniFilterCriteria? postojeciFilter = null)
+    public NaprednaPretragaWindow(AccountingDbContext db, NapredniFilterCriteria? postojeciFilter = null, NaprednoFilterKontekst kontekst = NaprednoFilterKontekst.Nalozi)
     {
         InitializeComponent();
         _db = db;
+        _kontekst = kontekst;
         FilterCriteria = postojeciFilter ?? new NapredniFilterCriteria();
+
+        if (_kontekst == NaprednoFilterKontekst.Trgovina)
+        {
+            // Konto i Partner (po šifri iz Partneri tabele) ne postoje na Kalkulacija/MaloprodajnaKalkulacija — sakrij da ne obećavaju filtriranje koje ne radi.
+            PanelKonto.Visibility = Visibility.Collapsed;
+            PanelPartner.Visibility = Visibility.Collapsed;
+            TxtBrojDokumentaLabel.Text = "Broj kalkulacije / računa / otpremnice:";
+        }
 
         PreviewKeyDown += (s, e) =>
         {
@@ -50,6 +67,20 @@ public partial class NaprednaPretragaWindow : Window
     {
         try
         {
+            if (_kontekst == NaprednoFilterKontekst.Trgovina)
+            {
+                if (FilterCriteria.DatumOd.HasValue) DpDatumOd.SelectedDate = FilterCriteria.DatumOd.Value;
+                if (FilterCriteria.DatumDo.HasValue) DpDatumDo.SelectedDate = FilterCriteria.DatumDo.Value;
+                if (FilterCriteria.IznosMin.HasValue) TxtIznosMin.Text = $"{FilterCriteria.IznosMin.Value:N2}";
+                if (FilterCriteria.IznosMax.HasValue) TxtIznosMax.Text = $"{FilterCriteria.IznosMax.Value:N2}";
+                TxtBrojDokumenta.Text = FilterCriteria.BrojDokumenta;
+
+                if (FilterCriteria.SamoProknjizeni == true) RbStatusProknjizeni.IsChecked = true;
+                else if (FilterCriteria.SamoProknjizeni == false) RbStatusNeproknjizeni.IsChecked = true;
+                else RbStatusSvi.IsChecked = true;
+                return;
+            }
+
             var partneri = await _db.Partneri.OrderBy(p => p.Naziv).ToListAsync();
             partneri.Insert(0, new Partner { PartnerId = 0, Naziv = "— Svi partneri —" });
             CmbPartneri.ItemsSource = partneri;

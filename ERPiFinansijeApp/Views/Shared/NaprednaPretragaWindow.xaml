@@ -77,19 +77,21 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                            <TextBlock Text="Broj dokumenta / naloga:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="TxtBrojDokumentaLabel" Text="Broj dokumenta / naloga:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
                             <TextBox x:Name="TxtBrojDokumenta" FontSize="13" Padding="8,4"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                        <StackPanel x:Name="PanelKonto" Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Konto / Šifra:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
                             <TextBox x:Name="TxtKonto" FontSize="13" Padding="8,4"/>
                         </StackPanel>
                     </Grid>
 
                     <!-- Izbor Partnera -->
-                    <TextBlock Text="🏢 Partner / Dobavljač / Kupac:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                    <ComboBox x:Name="CmbPartneri" DisplayMemberPath="Naziv" SelectedValuePath="PartnerId" FontSize="13" Padding="8,4" Margin="0,0,0,12"/>
+                    <StackPanel x:Name="PanelPartner">
+                        <TextBlock Text="🏢 Partner / Dobavljač / Kupac:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="CmbPartneri" DisplayMemberPath="Naziv" SelectedValuePath="PartnerId" FontSize="13" Padding="8,4" Margin="0,0,0,12"/>
+                    </StackPanel>
 
                     <!-- Status Knjiženja -->
                     <TextBlock Text="📌 Status knjiženja:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>

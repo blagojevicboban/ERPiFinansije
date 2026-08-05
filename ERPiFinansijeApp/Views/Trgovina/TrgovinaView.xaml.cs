@@ -105,7 +105,16 @@ public partial class TrgovinaView : UserControl
             DgKalkulacije.ItemsSource = _sveKalkulacije.Where(k =>
                 (string.IsNullOrEmpty(search) || k.BrojKalkulacije.ToString().Contains(search) || (k.SifraDobavljaca != null && k.SifraDobavljaca.ToLower().Contains(search))) &&
                 (!samoProknjizeni || k.IsKnjizen) &&
-                (!samoNeproknjizeni || !k.IsKnjizen)
+                (!samoNeproknjizeni || !k.IsKnjizen) &&
+                (!_trgovinaFilter.DatumOd.HasValue || k.Datum >= _trgovinaFilter.DatumOd.Value.Date) &&
+                (!_trgovinaFilter.DatumDo.HasValue || k.Datum <= _trgovinaFilter.DatumDo.Value.Date.AddDays(1).AddTicks(-1)) &&
+                (!_trgovinaFilter.IznosMin.HasValue || k.ProdajnaVrednost >= _trgovinaFilter.IznosMin.Value) &&
+                (!_trgovinaFilter.IznosMax.HasValue || k.ProdajnaVrednost <= _trgovinaFilter.IznosMax.Value) &&
+                (string.IsNullOrEmpty(_trgovinaFilter.BrojDokumenta) ||
+                    k.BrojKalkulacije.ToString().Contains(_trgovinaFilter.BrojDokumenta) ||
+                    (k.BrojRacuna != null && k.BrojRacuna.Contains(_trgovinaFilter.BrojDokumenta, StringComparison.OrdinalIgnoreCase)) ||
+                    (k.BrojOtpremnice != null && k.BrojOtpremnice.Contains(_trgovinaFilter.BrojDokumenta, StringComparison.OrdinalIgnoreCase))) &&
+                (!_trgovinaFilter.SamoProknjizeni.HasValue || k.IsKnjizen == _trgovinaFilter.SamoProknjizeni.Value)
             ).ToList();
         }
         else
@@ -113,7 +122,16 @@ public partial class TrgovinaView : UserControl
             DgKalkulacije.ItemsSource = _sveMaloprodajneKalkulacije.Where(k =>
                 (string.IsNullOrEmpty(search) || k.BrojKalkulacije.ToString().Contains(search)) &&
                 (!samoProknjizeni || k.IsKnjizen) &&
-                (!samoNeproknjizeni || !k.IsKnjizen)
+                (!samoNeproknjizeni || !k.IsKnjizen) &&
+                (!_trgovinaFilter.DatumOd.HasValue || k.Datum >= _trgovinaFilter.DatumOd.Value.Date) &&
+                (!_trgovinaFilter.DatumDo.HasValue || k.Datum <= _trgovinaFilter.DatumDo.Value.Date.AddDays(1).AddTicks(-1)) &&
+                (!_trgovinaFilter.IznosMin.HasValue || k.ProdajnaVrednost >= _trgovinaFilter.IznosMin.Value) &&
+                (!_trgovinaFilter.IznosMax.HasValue || k.ProdajnaVrednost <= _trgovinaFilter.IznosMax.Value) &&
+                (string.IsNullOrEmpty(_trgovinaFilter.BrojDokumenta) ||
+                    k.BrojKalkulacije.ToString().Contains(_trgovinaFilter.BrojDokumenta) ||
+                    (k.BrojRacuna != null && k.BrojRacuna.Contains(_trgovinaFilter.BrojDokumenta, StringComparison.OrdinalIgnoreCase)) ||
+                    (k.BrojOtpremnice != null && k.BrojOtpremnice.Contains(_trgovinaFilter.BrojDokumenta, StringComparison.OrdinalIgnoreCase))) &&
+                (!_trgovinaFilter.SamoProknjizeni.HasValue || k.IsKnjizen == _trgovinaFilter.SamoProknjizeni.Value)
             ).ToList();
         }
     }
@@ -2339,11 +2357,14 @@ public partial class TrgovinaView : UserControl
                 .Options;
 
             using var db = new AccountingDbContext(options);
-            var win = new Shared.NaprednaPretragaWindow(db, _trgovinaFilter) { Owner = Window.GetWindow(this) };
+            var win = new Shared.NaprednaPretragaWindow(db, _trgovinaFilter, Shared.NaprednoFilterKontekst.Trgovina) { Owner = Window.GetWindow(this) };
             if (win.ShowDialog() == true)
             {
                 _trgovinaFilter = win.FilterCriteria;
-                LoadKalkulacije();
+                BtnNapredniFilterKalkulacije.Background = _trgovinaFilter.HasActiveFilter
+                    ? System.Windows.Media.Brushes.DarkOrange
+                    : (System.Windows.Media.Brush)FindResource("PrimaryLightBrush");
+                FiltrirajKalkulacije();
             }
         }
         catch (Exception ex)
